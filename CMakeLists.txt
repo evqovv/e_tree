@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(e_tree VERSION 0.1.0 LANGUAGES C CXX)
 
-set(CXX_STANDARD 23)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
+set(CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
 
 include_directories($ENV{HOME}/fast_io/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
