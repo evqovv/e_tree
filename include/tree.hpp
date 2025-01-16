@@ -104,39 +104,37 @@ private:
     }
   }
 
-  ::std::string concatenate_string(::std::string const &previous_prefix,
+  static auto directory_size(::std::filesystem::path const &path) {
+    struct statvfs fs_info{};
+
+    if (::statvfs(path.c_str(), &fs_info) != 0) {
+      throw ::std::runtime_error(::std::strerror(errno));
+    }
+
+    return fs_info.f_bsize;
+  }
+
+  ::std::string concatenate_string(::std::string const &prefix,
                                    ::std::filesystem::path const &path,
                                    bool last) const {
-    ::std::string prefix = previous_prefix + (last ? "└── " : "├── ");
-    ::std::string file_size_part;
-    ::std::string file_name_part;
-    ::std::string link_part;
+    ::std::string to_print = prefix + (last ? "└── " : "├── ");
+
     if (option.display_file_size) {
-      file_size_part += "[";
-
-      if (::std::filesystem::is_directory(path)) {
-        struct statvfs fs_info{};
-
-        if (::statvfs(path.c_str(), &fs_info) != 0) {
-          throw ::std::runtime_error(::std::strerror(errno));
-        }
-
-        file_size_part = ::std::to_string(fs_info.f_bsize);
-      } else {
-        file_size_part = ::std::to_string(::std::filesystem::file_size(path));
-      }
-
-      file_size_part += "] ";
+      to_print += "[";
+      to_print += ::std::to_string(::std::filesystem::is_directory(path)
+                                       ? directory_size(path)
+                                       : ::std::filesystem::file_size(path));
+      to_print += "] ";
     }
 
-    file_name_part = option.display_full_path ? path : path.filename();
+    to_print += option.display_full_path ? path : path.filename();
 
     if (::std::filesystem::is_symlink(path)) {
-      link_part += " -> ";
-      link_part += std::filesystem::read_symlink(path);
+      to_print += " -> ";
+      to_print += std::filesystem::read_symlink(path);
     }
 
-    return prefix + file_size_part + file_name_part + link_part;
+    return to_print;
   }
 
   struct {
