@@ -22,11 +22,10 @@ public:
       ::fast_io::perrln("");
     }
 
-    auto to_print =
+    ::fast_io::perrln(
         ::std::format("{} {}, {} {}.", total_directories,
                       (total_directories == 1 ? "directory" : "directories"),
-                      total_files, (total_files == 1 ? "file" : "files"));
-    ::fast_io::perrln(to_print);
+                      total_files, (total_files == 1 ? "file" : "files")));
   }
 
 private:
@@ -84,9 +83,8 @@ private:
     }
 
     for (::std::size_t i = 0; i != entries.size(); ++i) {
-      auto to_print = concatenate_string(prefix, entries[i].path(),
-                                         i == entries.size() - 1);
-      ::fast_io::perrln(to_print);
+      ::fast_io::perrln(concatenate_string(prefix, entries[i].path(),
+                                           i == entries.size() - 1));
 
       if (entries[i].is_directory()) {
         ++total_directories;
