@@ -12,6 +12,11 @@
 
 namespace evqovv {
 class tree_list {
+  enum class order_option {
+    none,
+    time,
+  };
+
 public:
   void run(int argc, char **argv) {
     parse({argv + 1, argv + argc});
@@ -44,6 +49,27 @@ private:
           case 'f':
             option.display_full_path = true;
             break;
+          case 'o':
+            ++param_cnt;
+            if (i + param_cnt >= parts.size()) {
+              throw ::std::runtime_error("Missing argument to -O option.");
+            }
+            if (parts[i + param_cnt].size() == 1) {
+              switch (parts[i + param_cnt][0]) {
+              case 't':
+                option.order = order_option::time;
+                break;
+              default:
+                throw ::std::runtime_error("Parsing failed.");
+                break;
+              }
+            } else {
+              throw ::std::runtime_error("Parsing failed.");
+            }
+            break;
+          case 'r':
+            option.reverse_order = true;
+            break;
           case 's':
             option.display_file_size = true;
             break;
@@ -71,6 +97,24 @@ private:
     }
   }
 
+  void order(::std::vector<::std::filesystem::directory_entry> &entries) const {
+    switch (option.order) {
+    case order_option::time:
+      ::std::sort(entries.begin(), entries.end(),
+                  [](::std::filesystem::directory_entry const &a,
+                     ::std::filesystem::directory_entry const &b) -> bool {
+                    return a.last_write_time() < b.last_write_time();
+                  });
+      break;
+    default:
+      break;
+    }
+
+    if (option.reverse_order) {
+      ::std::reverse(entries.begin(), entries.end());
+    }
+  }
+
   void walk(::std::filesystem::path const &root, ::std::string const &prefix,
             unsigned cur_depth) {
     ::std::vector<::std::filesystem::directory_entry> entries;
@@ -81,6 +125,8 @@ private:
         entries.push_back(entry);
       }
     }
+
+    order(entries);
 
     for (::std::size_t i = 0; i != entries.size(); ++i) {
       ::fast_io::perrln(concatenate_string(prefix, entries[i].path(),
@@ -103,7 +149,7 @@ private:
   }
 
   static auto directory_size(::std::filesystem::path const &path) {
-    struct statvfs fs_info{};
+    struct ::statvfs fs_info{};
 
     if (::statvfs(path.c_str(), &fs_info) != 0) {
       throw ::std::runtime_error(::std::strerror(errno));
@@ -139,7 +185,10 @@ private:
     bool display_all_files = false;
     bool display_file_size = false;
     bool display_full_path = false;
+    bool reverse_order = false;
     bool only_display_directories = false;
+
+    order_option order = order_option::none;
 
     unsigned max_depth = ::std::numeric_limits<unsigned>::max();
     ::std::vector<::std::filesystem::path> tree_paths;
