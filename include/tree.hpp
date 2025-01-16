@@ -115,24 +115,24 @@ private:
   ::std::string concatenate_string(::std::string const &prefix,
                                    ::std::filesystem::path const &path,
                                    bool last) const {
-    ::std::string to_print = prefix + (last ? "└── " : "├── ");
+    ::std::string str = prefix + (last ? "└── " : "├── ");
 
     if (option.display_file_size) {
-      to_print += "[";
-      to_print += ::std::to_string(::std::filesystem::is_directory(path)
-                                       ? directory_size(path)
-                                       : ::std::filesystem::file_size(path));
-      to_print += "] ";
+      str += "[";
+      str += ::std::to_string(::std::filesystem::is_directory(path)
+                                  ? directory_size(path)
+                                  : ::std::filesystem::file_size(path));
+      str += "] ";
     }
 
-    to_print += option.display_full_path ? path : path.filename();
+    str += option.display_full_path ? path : path.filename();
 
     if (::std::filesystem::is_symlink(path)) {
-      to_print += " -> ";
-      to_print += std::filesystem::read_symlink(path);
+      str += " -> ";
+      str += std::filesystem::read_symlink(path);
     }
 
-    return to_print;
+    return str;
   }
 
   struct {
