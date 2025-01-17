@@ -227,7 +227,7 @@ private:
 
     if (::std::filesystem::is_symlink(path)) {
       str += " -> ";
-      str += std::filesystem::read_symlink(path);
+      str += ::std::filesystem::read_symlink(path);
     }
 
     return str;
