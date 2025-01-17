@@ -11,7 +11,7 @@
 #include <fast_io.h>
 
 namespace evqovv {
-class tree_list {
+class e_tree_list {
   enum class sort_option {
     none,
     name,
@@ -30,7 +30,7 @@ public:
 
     for (auto &&tree_path : option.tree_paths) {
       ::fast_io::perrln(tree_path);
-      walk(tree_path, "", 1);
+      list(tree_path, "", 1);
       ::fast_io::perrln("");
     }
 
@@ -167,7 +167,7 @@ private:
     }
   }
 
-  void walk(::std::filesystem::path const &root, ::std::string const &prefix,
+  void list(::std::filesystem::path const &root, ::std::string const &prefix,
             unsigned cur_depth) {
     ::std::vector<::std::filesystem::directory_entry> entries;
 
@@ -189,7 +189,7 @@ private:
 
         if (!::std::filesystem::is_symlink(entries[i])) {
           if (cur_depth < option.max_depth) {
-            walk(root / entries[i].path().filename(),
+            list(root / entries[i].path().filename(),
                  prefix + (i == entries.size() - 1 ? "    " : "│   "),
                  cur_depth + 1);
           }
