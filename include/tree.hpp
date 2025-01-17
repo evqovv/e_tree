@@ -12,10 +12,16 @@
 
 namespace evqovv {
 class tree_list {
-  enum class order_option {
+  enum class sort_option {
     none,
     name,
     time,
+  };
+
+  enum class first_option {
+    none,
+    files,
+    directories,
   };
 
 public:
@@ -55,9 +61,9 @@ private:
 --help       Print usage and this help message and exit.)");
             ::std::exit(0);
           } else if (str == "dirsfirst") {
-
+            option.first = first_option::directories;
           } else if (str == "filesfirst") {
-
+            option.first = first_option::files;
           } else {
             throw ::std::runtime_error("Parsing failed.");
           }
@@ -75,7 +81,7 @@ private:
               option.display_full_path = true;
               break;
             case 'n':
-              option.order = order_option::name;
+              option.sort = sort_option::name;
               break;
             case 'r':
               option.reverse_order = true;
@@ -84,7 +90,7 @@ private:
               option.display_file_size = true;
               break;
             case 't':
-              option.order = order_option::time;
+              option.sort = sort_option::time;
               break;
             case 'L':
               ++param_cnt;
@@ -93,6 +99,10 @@ private:
               }
               option.max_depth =
                   ::std::stoul(::std::string(parts[i + param_cnt]));
+              break;
+            case 'U':
+              option.sort = sort_option::none;
+              option.first = first_option::none;
               break;
             default:
               throw ::std::runtime_error("Parsing failed.");
@@ -114,20 +124,18 @@ private:
     }
   }
 
-  void order(::std::vector<::std::filesystem::directory_entry> &entries) const {
-    switch (option.order) {
-    case order_option::name:
+  void sort(::std::vector<::std::filesystem::directory_entry> &entries) const {
+    switch (option.sort) {
+    case sort_option::name:
       ::std::sort(entries.begin(), entries.end(),
-                  [](::std::filesystem::directory_entry const &a,
-                     ::std::filesystem::directory_entry const &b) -> bool {
-                    return a.path().filename() < a.path().filename();
+                  [](auto const &lhs, auto const &rhs) {
+                    return lhs.path().filename() < rhs.path().filename();
                   });
       break;
-    case order_option::time:
+    case sort_option::time:
       ::std::sort(entries.begin(), entries.end(),
-                  [](::std::filesystem::directory_entry const &a,
-                     ::std::filesystem::directory_entry const &b) -> bool {
-                    return a.last_write_time() < b.last_write_time();
+                  [](auto const &lhs, auto const &rhs) {
+                    return lhs.last_write_time() < rhs.last_write_time();
                   });
       break;
     default:
@@ -136,6 +144,25 @@ private:
 
     if (option.reverse_order) {
       ::std::reverse(entries.begin(), entries.end());
+    }
+
+    switch (option.first) {
+    case first_option::directories:
+      ::std::stable_sort(entries.begin(), entries.end(),
+                         [](auto const &lhs, auto const &rhs) {
+                           return ::std::filesystem::is_directory(lhs) &&
+                                  !::std::filesystem::is_directory(rhs);
+                         });
+      break;
+    case first_option::files:
+      ::std::stable_sort(entries.begin(), entries.end(),
+                         [](auto const &lhs, auto const &rhs) {
+                           return !::std::filesystem::is_directory(lhs) &&
+                                  ::std::filesystem::is_directory(rhs);
+                         });
+      break;
+    default:
+      break;
     }
   }
 
@@ -150,7 +177,7 @@ private:
       }
     }
 
-    order(entries);
+    sort(entries);
 
     for (::std::size_t i = 0; i != entries.size(); ++i) {
       ::fast_io::perrln(concatenate_string(prefix, entries[i].path(),
@@ -212,7 +239,8 @@ private:
     bool reverse_order = false;
     bool only_display_directories = false;
 
-    order_option order = order_option::none;
+    sort_option sort = sort_option::none;
+    first_option first = first_option::none;
 
     unsigned max_depth = ::std::numeric_limits<unsigned>::max();
     ::std::vector<::std::filesystem::path> tree_paths;
