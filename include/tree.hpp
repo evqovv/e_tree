@@ -14,6 +14,7 @@ namespace evqovv {
 class tree_list {
   enum class order_option {
     none,
+    name,
     time,
   };
 
@@ -37,58 +38,74 @@ private:
   void parse(::std::vector<::std::string_view> const &parts) {
     for (decltype(parts.size()) i = 0; i != parts.size(); ++i) {
       if (parts[i][0] == '-') {
-        decltype(i) param_cnt = 0;
-        for (auto &&ch : parts[i].substr(1)) {
-          switch (ch) {
-          case 'a':
-            option.display_all_files = true;
-            break;
-          case 'd':
-            option.only_display_directories = true;
-            break;
-          case 'f':
-            option.display_full_path = true;
-            break;
-          case 'o':
-            ++param_cnt;
-            if (i + param_cnt >= parts.size()) {
-              throw ::std::runtime_error("Missing argument to -O option.");
-            }
-            if (parts[i + param_cnt].size() == 1) {
-              switch (parts[i + param_cnt][0]) {
-              case 't':
-                option.order = order_option::time;
-                break;
-              default:
-                throw ::std::runtime_error("Parsing failed.");
-                break;
-              }
-            } else {
-              throw ::std::runtime_error("Parsing failed.");
-            }
-            break;
-          case 'r':
-            option.reverse_order = true;
-            break;
-          case 's':
-            option.display_file_size = true;
-            break;
-          case 'L':
-            ++param_cnt;
-            if (i + param_cnt >= parts.size()) {
-              throw ::std::runtime_error("Missing argument to -L option.");
-            }
-            option.max_depth =
-                ::std::stoull(::std::string(parts[i + param_cnt]));
-            break;
-          default:
+        if (parts[i][1] == '-') {
+          auto str = parts[i].substr(2);
+          if (str == "help") {
+            ::fast_io::perrln(R"(------- Listing options -------
+-a           All files are listed.
+-d           List directories only.
+-f           Print the full path prefix for each file.
+-n           Sort by the filename.
+-r           Reverse the order of the sort.
+-s           Print the size in bytes of each file.
+-t           Sort by the last time the file was modified.
+-L           Maximum depth limit for recursive directories.
+--dirsfirst  List directories before files.
+--filesfirst List files before directories.
+--help       Print usage and this help message and exit.)");
+            ::std::exit(0);
+          } else if (str == "dirsfirst") {
+
+          } else if (str == "filesfirst") {
+
+          } else {
             throw ::std::runtime_error("Parsing failed.");
-            break;
           }
+        } else {
+          decltype(i) param_cnt = 0;
+          for (auto &&ch : parts[i].substr(1)) {
+            switch (ch) {
+            case 'a':
+              option.display_all_files = true;
+              break;
+            case 'd':
+              option.only_display_directories = true;
+              break;
+            case 'f':
+              option.display_full_path = true;
+              break;
+            case 'n':
+              option.order = order_option::name;
+              break;
+            case 'r':
+              option.reverse_order = true;
+              break;
+            case 's':
+              option.display_file_size = true;
+              break;
+            case 't':
+              option.order = order_option::time;
+              break;
+            case 'L':
+              ++param_cnt;
+              if (i + param_cnt >= parts.size()) {
+                throw ::std::runtime_error("Missing argument to -L option.");
+              }
+              option.max_depth =
+                  ::std::stoul(::std::string(parts[i + param_cnt]));
+              break;
+            default:
+              throw ::std::runtime_error("Parsing failed.");
+              break;
+            }
+          }
+          i += param_cnt;
         }
-        i += param_cnt;
       } else {
-        option.tree_paths.emplace_back(parts[i]);
+        if (::std::find(option.tree_paths.cbegin(), option.tree_paths.cend(),
+                        parts[i]) == option.tree_paths.cend()) {
+          option.tree_paths.emplace_back(parts[i]);
+        }
       }
     }
 
@@ -99,6 +116,13 @@ private:
 
   void order(::std::vector<::std::filesystem::directory_entry> &entries) const {
     switch (option.order) {
+    case order_option::name:
+      ::std::sort(entries.begin(), entries.end(),
+                  [](::std::filesystem::directory_entry const &a,
+                     ::std::filesystem::directory_entry const &b) -> bool {
+                    return a.path().filename() < a.path().filename();
+                  });
+      break;
     case order_option::time:
       ::std::sort(entries.begin(), entries.end(),
                   [](::std::filesystem::directory_entry const &a,
