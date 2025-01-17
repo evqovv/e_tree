@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(e_tree VERSION 0.1.0 LANGUAGES C CXX)
 
+set(CXX_STANDARD_REQUIRED ON)
 set(CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
 
