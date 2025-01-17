@@ -56,6 +56,7 @@ private:
 -s           Print the size in bytes of each file.
 -t           Sort by the last time the file was modified.
 -L           Maximum depth limit for recursive directories.
+-U           Leave files unsorted.
 --dirsfirst  List directories before files.
 --filesfirst List files before directories.
 --help       Print usage and this help message and exit.)");
@@ -179,7 +180,7 @@ private:
 
     sort(entries);
 
-    for (::std::size_t i = 0; i != entries.size(); ++i) {
+    for (decltype(entries.size()) i = 0; i != entries.size(); ++i) {
       ::fast_io::perrln(concatenate_string(prefix, entries[i].path(),
                                            i == entries.size() - 1));
 
@@ -200,7 +201,7 @@ private:
   }
 
   static auto directory_size(::std::filesystem::path const &path) {
-    struct ::statvfs fs_info{};
+    struct statvfs fs_info{};
 
     if (::statvfs(path.c_str(), &fs_info) != 0) {
       throw ::std::runtime_error(::std::strerror(errno));
