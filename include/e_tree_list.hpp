@@ -42,7 +42,7 @@ public:
 
 private:
   void parse(::std::vector<::std::string_view> const &parts) {
-    for (decltype(parts.size()) i = 0; i != parts.size(); ++i) {
+    for (decltype(parts.size()) i{}; i != parts.size(); ++i) {
       if (parts[i][0] == '-') {
         if (parts[i][1] == '-') {
           auto str = parts[i].substr(2);
@@ -69,7 +69,7 @@ private:
             throw ::std::runtime_error("Parsing failed.");
           }
         } else {
-          decltype(i) param_cnt = 0;
+          decltype(i) param_cnt{};
           for (auto &&ch : parts[i].substr(1)) {
             switch (ch) {
             case 'a':
@@ -180,7 +180,7 @@ private:
 
     sort(entries);
 
-    for (decltype(entries.size()) i = 0; i != entries.size(); ++i) {
+    for (decltype(entries.size()) i{}; i != entries.size(); ++i) {
       ::fast_io::perrln(concatenate_string(prefix, entries[i].path(),
                                            i == entries.size() - 1));
 
@@ -247,7 +247,7 @@ private:
     ::std::vector<::std::filesystem::path> tree_paths;
   } option;
 
-  ::std::size_t total_files = 0;
-  ::std::size_t total_directories = 0;
+  ::std::size_t total_files{};
+  ::std::size_t total_directories{};
 };
 } // namespace evqovv
