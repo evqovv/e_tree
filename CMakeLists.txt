@@ -1,15 +1,21 @@
-cmake_minimum_required(VERSION 3.5.0)
-project(e_tree VERSION 0.1.0 LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.20.0)
 
-set(CXX_STANDARD_REQUIRED ON)
-set(CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+project(e_tree)
 
-include_directories(${CMAKE_SOURCE_DIR}/fast_io/include)
-include_directories(${CMAKE_SOURCE_DIR}/include)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-file(GLOB SRC_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB SRC_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 add_executable(e_tree ${SRC_FILES})
+
+target_include_directories(e_tree PRIVATE
+    ${CMAKE_SOURCE_DIR}/fast_io/include
+    ${CMAKE_SOURCE_DIR}/include
+)
